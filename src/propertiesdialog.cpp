@@ -162,6 +162,14 @@ PropertiesDialog::PropertiesDialog(QWidget *parent)
 
     termComboBox->setCurrentText(Properties::Instance()->term);
 
+    editorLineEdit->setText(Properties::Instance()->editor);
+
+    editorTypeComboBox->addItem(tr("Auto"));
+    editorTypeComboBox->addItem(tr("GUI"));
+    editorTypeComboBox->addItem(tr("Terminal"));
+
+    editorTypeComboBox->setCurrentIndex(Properties::Instance()->editorType);
+
     historyLimited->setChecked(Properties::Instance()->historyLimited);
     historyUnlimited->setChecked(!Properties::Instance()->historyLimited);
     historyLimitedTo->setValue(Properties::Instance()->historyLimitedTo);
@@ -247,6 +255,11 @@ void PropertiesDialog::apply()
     Properties::Instance()->useCWD = useCwdCheckBox->isChecked();
 
     Properties::Instance()->term = termComboBox->currentText();
+    Properties::Instance()->editor = editorLineEdit->text();
+    Properties::Instance()->editorType = qBound<Properties::EditorType>(Properties::Editor_Min,
+                                                                        static_cast<Properties::EditorType>(editorTypeComboBox->currentIndex()),
+                                                                        Properties::Editor_Max);
+
 
     Properties::Instance()->scrollBarPos = scrollBarPos_comboBox->currentIndex();
     Properties::Instance()->tabsPos = tabsPos_comboBox->currentIndex();

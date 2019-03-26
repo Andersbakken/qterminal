@@ -126,6 +126,13 @@ void Properties::loadSettings()
     savePosOnExit = m_settings->value(QLatin1String("SavePosOnExit"), true).toBool();
     useCWD = m_settings->value(QLatin1String("UseCWD"), false).toBool();
     term = m_settings->value(QLatin1String("Term"), QLatin1String("xterm-256color")).toString();
+    QByteArray editorDefault = qgetenv("VISUAL");
+    if (editorDefault.isEmpty())
+        editorDefault = qgetenv("EDITOR");
+    editor = m_settings->value(QLatin1String("Editor"), editorDefault).toString();
+    editorType = qBound<EditorType>(Editor_Min,
+                                    static_cast<EditorType>(m_settings->value(QLatin1String("EditorType"), Editor_Auto).toInt()),
+                                    Editor_Max);
 
     // bookmarks
     useBookmarks = m_settings->value(QLatin1String("UseBookmarks"), false).toBool();
@@ -225,6 +232,8 @@ void Properties::saveSettings()
     m_settings->setValue(QLatin1String("SaveSizeOnExit"), saveSizeOnExit);
     m_settings->setValue(QLatin1String("UseCWD"), useCWD);
     m_settings->setValue(QLatin1String("Term"), term);
+    m_settings->setValue(QLatin1String("Editor"), editor);
+    m_settings->setValue(QLatin1String("EditorType"), editorType);
 
     // bookmarks
     m_settings->setValue(QLatin1String("UseBookmarks"), useBookmarks);
@@ -311,16 +320,16 @@ void Properties::migrate_settings()
             settings.setValue(QLatin1String("TerminalTransparency"), 100 - termOpacityValue);
         }
         settings.remove(QLatin1String("termOpacity"));
-	// geometry -> size, pos
+    // geometry -> size, pos
     if (!settings.contains(QLatin1String("MainWindow/size")))
-	{
-	    QWidget geom;
+    {
+        QWidget geom;
         geom.restoreGeometry(settings.value(QLatin1String("MainWindow/geometry")).toByteArray());
             settings.setValue(QLatin1String("MainWindow/size"), geom.size());
             settings.setValue(QLatin1String("MainWindow/pos"), geom.pos());
             settings.setValue(QLatin1String("MainWindow/isMaximized"), geom.isMaximized());
             settings.remove(QLatin1String("MainWindow/geometry"));
-	}
+    }
     }
 
     if (currentVersion > lastVersion)

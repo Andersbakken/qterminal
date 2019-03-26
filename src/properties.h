@@ -88,6 +88,15 @@ class Properties
 
         QString term;
 
+        QString editor;
+        enum EditorType {
+            Editor_Auto,
+            Editor_GUI,
+            Editor_Terminal,
+            Editor_Min = Editor_Auto,
+            Editor_Max = Editor_Terminal
+        } editorType;
+
         bool useBookmarks;
         bool bookmarksVisible;
         QString bookmarksFile;

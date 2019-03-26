@@ -65,6 +65,8 @@
 #define RENAME_SESSION "Rename Session"
 #define FULLSCREEN "Fullscreen"
 
+#define SEND_HISTORY_TO_EDITOR "Send History to Editor"
+
 /* Some defaults for QTerminal application */
 
 #define DEFAULT_WIDTH                  800

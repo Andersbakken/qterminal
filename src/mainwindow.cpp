@@ -287,6 +287,9 @@ void MainWindow::setup_ActionsMenu_Actions()
     setup_Action(FIND, new QAction(QIcon::fromTheme(QStringLiteral("edit-find")), tr("&Find..."), settingOwner),
                  FIND_SHORTCUT, this, SLOT(find()), menu_Actions);
 
+    setup_Action(SEND_HISTORY_TO_EDITOR, new QAction(QIcon::fromTheme(QStringLiteral("edit-send-to-edutor")), tr("&Send history to editor..."), settingOwner),
+                 NULL, this, SLOT(sendHistoryToEditor()), menu_Actions);
+
 #if 0
     act = new QAction(this);
     act->setSeparator(true);
@@ -715,6 +718,37 @@ void MainWindow::find()
     consoleTabulator->terminalHolder()->currentTerminal()->impl()->toggleShowSearchBar();
 }
 
+void MainWindow::sendHistoryToEditor()
+{
+    const QString fn = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + QLatin1String("/qterminal.history.") + QString::number(QCoreApplication::applicationPid());
+    QFile file(fn);
+    if (!file.open(QIODevice::WriteOnly)) {
+        qDebug() << "Failed to open" << file.fileName() << "for writing";
+        return;
+    }
+    TermWidgetImpl *impl = consoleTabulator->terminalHolder()->currentTerminal()->impl();
+    impl->saveHistory(&file);
+    file.close();
+    Properties::EditorType type = Properties::Instance()->editorType;
+    QString editor = Properties::Instance()->editor;
+    if (type == Properties::Editor_Auto) {
+        type = Properties::Editor_GUI;
+        for (const char *ed : { "vim", "vi", "less", "more", "nano", "pico", "view", "ed" }) {
+            if (editor == QLatin1String(ed)) {
+                type = Properties::Editor_Terminal;
+                break;
+            }
+        }
+    }
+    if (type == Properties::Editor_Terminal) {
+        impl->sendText(QLatin1String("\1#\n")); // comment out current line first
+        impl->sendText(Properties::Instance()->editor + QLatin1Char(' ') + fn + QLatin1Char('\n'));
+    } else {
+        if (!QProcess::startDetached(Properties::Instance()->editor, QStringList() << fn)) {
+            qDebug() << "Failed to start editor" << Properties::Instance()->editor << fn;
+        }
+    }
+}
 
 bool MainWindow::event(QEvent *event)
 {
